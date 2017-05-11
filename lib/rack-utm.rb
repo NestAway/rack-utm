@@ -63,7 +63,7 @@ module Rack
 
       status, headers, body = @app.call(env)
 
-      if source != cookie_tag
+      if source != cookie_tag || from != cookie_from_tag
         bake_cookies(headers, source, medium, term, content, campaign, from, time, lp)
       end
 
@@ -114,12 +114,14 @@ module Rack
         COOKIE_TIME => time,
         COOKIE_LP => lp
       }.each do |key, value|
-          cookie_hash = {:value => value,
-                         :expires => expires,
-                         :path => "/"}
-          cookie_hash[:domain] = @cookie_domain if @cookie_domain
-          Rack::Utils.set_cookie_header!(headers, key, cookie_hash)
-      end 
+          if value != nil
+            cookie_hash = {:value => value,
+                           :expires => expires,
+                           :path => "/"}
+            cookie_hash[:domain] = @cookie_domain if @cookie_domain
+            Rack::Utils.set_cookie_header!(headers, key, cookie_hash)
+          end
+      end
     end
   end
 end
