@@ -21,7 +21,8 @@ module Rack
       @key_param = "utm_source"
       @cookie_ttl = opts[:ttl] || 60*60*24*30  # 30 days
       @cookie_domain = opts[:domain] || nil
-      @allow_overwrite = opts[:overwrite].nil? ? true : opts[:overwrite] 
+      @allow_overwrite = opts[:overwrite].nil? ? true : opts[:overwrite]
+      @from_blacklist = opts[:from_blacklist]
     end
 
     def call(env)
@@ -37,16 +38,20 @@ module Rack
         source, medium, term, content, campaign, from, time, lp = cookie_info(req)
       end
 
-      if (params_tag && params_tag != cookie_tag) ||
-        (params_from_tag &&  params_from_tag != cookie_from_tag)
-
-        if source || from
+      if params_tag && params_tag != cookie_tag
+        if source
           if @allow_overwrite
-            source, medium, term, content, campaign, from, time, lp = params_info(req)
+            source, medium, term, content, campaign, time, lp = params_info(req)
           end
         else
-          source, medium, term, content, campaign, from, time, lp = params_info(req)
+          source, medium, term, content, campaign, time, lp = params_info(req)
         end
+      end
+
+      if params_from_tag && params_from_tag != from && params_from_tag.exclude?(@from_blacklist)
+        from = req.env["HTTP_REFERER"]
+      else
+        from = 'Direct'
       end
 
       if source || from
@@ -81,7 +86,6 @@ module Rack
           req.params["utm_term"],
           req.params["utm_content"],
           req.params["utm_campaign"],
-          req.env["HTTP_REFERER"],
           Time.now.to_i,
           req.path
       ]
