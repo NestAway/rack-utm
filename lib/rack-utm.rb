@@ -22,7 +22,6 @@ module Rack
       @cookie_ttl = opts[:ttl] || 60*60*24*30  # 30 days
       @cookie_domain = opts[:domain] || nil
       @allow_overwrite = opts[:overwrite].nil? ? true : opts[:overwrite]
-      @from_blacklist = opts[:from_blacklist]
     end
 
     def call(env)
@@ -48,10 +47,10 @@ module Rack
         end
       end
 
-      if params_from_tag && params_from_tag != from && params_from_tag.exclude?(@from_blacklist)
+      if params_from_tag && cookie_from_tag == nil
         from = req.env["HTTP_REFERER"]
       else
-        from = 'Direct'
+        from = cookie_from_tag || 'Direct'
       end
 
       if source || from
