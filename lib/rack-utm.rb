@@ -2,7 +2,7 @@ module Rack
   #
   # Rack Middleware for extracting information from the request params and cookies.
   # It populates +env['affiliate.tag']+, # +env['affiliate.from']+ and
-  # +env['affiliate.time'] if it detects a request came from an affiliated link 
+  # +env['affiliate.time'] if it detects a request came from an affiliated link
   #
   class Utm
 
@@ -11,11 +11,11 @@ module Rack
     COOKIE_TERM     = "u_term"
     COOKIE_CONTENT  = "u_content"
     COOKIE_CAMPAIGN = "u_campaign"
-    
+
     COOKIE_FROM     = "u_from"
     COOKIE_TIME     = "u_time"
     COOKIE_LP       = "u_lp"
-    
+
     def initialize(app, opts = {})
       @app = app
       @key_param = "utm_source"
@@ -37,15 +37,7 @@ module Rack
         source, medium, term, content, campaign, from, time, lp = cookie_info(req)
       end
 
-      if params_tag && params_tag != cookie_tag
-        if source
-          if @allow_overwrite
-            source, medium, term, content, campaign, time, lp = params_info(req)
-          end
-        else
-          source, medium, term, content, campaign, time, lp = params_info(req)
-        end
-      end
+      source, medium, term, content, campaign, time, lp = params_info(req)
 
       if params_from_tag && cookie_from_tag == nil
         from = req.env["HTTP_REFERER"]
@@ -67,15 +59,13 @@ module Rack
 
       status, headers, body = @app.call(env)
 
-      if source != cookie_tag || from != cookie_from_tag
-        bake_cookies(headers, source, medium, term, content, campaign, from, time, lp)
-      end
+      bake_cookies(headers, source, medium, term, content, campaign, from, time, lp)
 
       [status, headers, body]
     end
 
     def utm_info(req)
-      params_info(req) || cookie_info(req) 
+      params_info(req) || cookie_info(req)
     end
 
     def params_info(req)
@@ -97,7 +87,7 @@ module Rack
         req.cookies[COOKIE_TERM],
         req.cookies[COOKIE_CONTENT],
         req.cookies[COOKIE_CAMPAIGN],
-        
+
         req.cookies[COOKIE_FROM],
         req.cookies[COOKIE_TIME],
         req.cookies[COOKIE_LP]
