@@ -70,11 +70,11 @@ module Rack
 
     def params_info(req)
       [
-          req.params["utm_source"],
-          req.params["utm_medium"],
-          req.params["utm_term"],
-          req.params["utm_content"],
-          req.params["utm_campaign"],
+          req.params["utm_source"]   || req.cookies[COOKIE_SOURCE],
+          req.params["utm_medium"]   || req.cookies[COOKIE_MEDIUM],
+          req.params["utm_term"]     || req.cookies[COOKIE_TERM],
+          req.params["utm_content"]  || req.cookies[COOKIE_CONTENT],
+          req.params["utm_campaign"] || req.cookies[COOKIE_CAMPAIGN],
           Time.now.to_i,
           req.path
       ]
